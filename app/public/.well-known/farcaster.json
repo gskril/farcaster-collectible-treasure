@@ -1,0 +1,19 @@
+{
+  "frame": {
+    "name": "Collectible Treasure",
+    "version": "1",
+    "iconUrl": "https://bedroom-cite-expect-findings.trycloudflare.com/favicon.svg",
+    "homeUrl": "https://bedroom-cite-expect-findings.trycloudflare.com",
+    "imageUrl": "https://bedroom-cite-expect-findings.trycloudflare.com/image.png",
+    "splashImageUrl": "https://bedroom-cite-expect-findings.trycloudflare.com/splash.png",
+    "splashBackgroundColor": "#FFFFFF",
+    "subtitle": "Unlock the treasure by winning the auction",
+    "description": "Unlock the treasure by winning the auction",
+    "primaryCategory": "social"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjM0NywidHlwZSI6ImF1dGgiLCJrZXkiOiIweDcxNkI1Mjc5NWE3MkRFMzMwOUQ4Njk3MTQyOGUxOTg0M0Q2RDlBODEifQ",
+    "payload": "eyJkb21haW4iOiJiZWRyb29tLWNpdGUtZXhwZWN0LWZpbmRpbmdzLnRyeWNsb3VkZmxhcmUuY29tIn0",
+    "signature": "u5u8I2VqbsDMVoxE15wW5Lua0GxizUWVflM7S7Qd+U5abagptdQpseXqyKqFPFD+ZChiHlnucChc9oticlY+ZRw="
+  }
+}

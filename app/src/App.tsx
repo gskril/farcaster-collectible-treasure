@@ -1,4 +1,12 @@
 import { Coins, Trophy } from 'lucide-react'
+import { useAccount, useBalance } from 'wagmi'
+import { formatEther, formatUnits } from 'viem'
+import { useEffect } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk'
+
+import { useBids, useErc20Tokens } from './hooks/useEvents'
+import { truncateAddress } from './lib/utils'
+import { treasureContract } from './web3'
 import {
   Card,
   CardContent,
@@ -6,11 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from './components/ui/card'
-import { useBalance } from 'wagmi'
-import { treasureContract } from './web3'
-import { formatEther, formatUnits } from 'viem'
-import { useBids, useErc20Tokens } from './hooks/useEvents'
-import { truncateAddress } from './lib/utils'
 
 function App() {
   // Show: The latest bid: xxUSDC by @user
@@ -18,6 +21,11 @@ function App() {
   const { data: ethBalance } = useBalance(treasureContract)
   const { data: tokens } = useErc20Tokens()
   const { data: bids } = useBids()
+  const { address } = useAccount()
+
+  useEffect(() => {
+    sdk.actions.ready()
+  }, [])
 
   return (
     <main className="container max-w-md mx-auto px-4 py-8">
@@ -25,9 +33,9 @@ function App() {
         <div className="bg-gradient-to-r from-amber-400 to-yellow-600 p-4 rounded-full mb-4">
           <Trophy className="h-12 w-12 text-white" />
         </div>
-        <h1 className="text-3xl font-bold mb-2">Collectible Treasure Chest</h1>
+        <h1 className="text-3xl font-bold mb-2">Collectible Treasure</h1>
         <p className="text-muted-foreground">
-          Win the auction to claim the treasure within this smart contract.
+          Collect Greg's cast to unlock the treasure within this smart contract.
         </p>
       </div>
 
@@ -81,7 +89,9 @@ function App() {
               <div key={index} className="flex justify-between items-center">
                 <div>
                   <div className="font-medium">
-                    {truncateAddress(args.bidder)}
+                    {address === args.bidder
+                      ? 'You'
+                      : truncateAddress(args.bidder)}
                   </div>
                 </div>
                 <span className="font-bold">

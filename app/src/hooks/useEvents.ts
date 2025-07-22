@@ -43,7 +43,12 @@ export function useErc20Tokens() {
       })
 
       for (let i = 0; i < tokenAddresses.length; i++) {
-        tokens.push({ address: tokenAddresses[i], symbol: res[i].result })
+        const symbol = res[i].result
+
+        // Block scams that include links in the symbol
+        if (symbol && !symbol.includes('|')) {
+          tokens.push({ address: tokenAddresses[i], symbol })
+        }
       }
 
       return tokens
