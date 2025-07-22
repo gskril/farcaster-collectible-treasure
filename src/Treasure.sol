@@ -35,7 +35,7 @@ contract Treasure {
     }
 
     // @dev Allow the contract to receive ETH
-    fallback() external payable {}
+    receive() external payable {}
 
     /// @notice Transfer the entire balance of ETH to the cast owner.
     function withdrawEth() external onlyCastOwner {
