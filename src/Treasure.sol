@@ -12,7 +12,11 @@ contract Treasure {
     bytes32 public immutable CAST_HASH;
     IERC721 public immutable COLLECTIBLE;
 
-    event Erc20Withdrawn(address indexed to, address indexed token, uint256 amount);
+    event Erc20Withdrawn(
+        address indexed to,
+        address indexed token,
+        uint256 amount
+    );
     event EthWithdrawn(address indexed to, uint256 amount);
 
     error NotCastOwner();
@@ -30,28 +34,43 @@ contract Treasure {
         CAST_HASH = _castHash;
     }
 
+    // @dev Allow the contract to receive ETH
+    fallback() external payable {}
+
     /// @notice Transfer the entire balance of ETH to the cast owner.
     function withdrawEth() external onlyCastOwner {
-        (bool success,) = msg.sender.call{value: address(this).balance}("");
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
         if (!success) revert TransferFailed();
     }
 
     /// @notice Transfer the entire balance of the specified ERC20 token to the cast owner.
     function withdrawErc20(IERC20 token) external onlyCastOwner {
-        bool success = IERC20(token).transfer(msg.sender, token.balanceOf(address(this)));
+        bool success = IERC20(token).transfer(
+            msg.sender,
+            token.balanceOf(address(this))
+        );
         if (!success) revert TransferFailed();
     }
 
     /// @notice Transfer the entire balance of the specified ERC20s to the cast owner.
-    function withdrawErc20Batch(IERC20[] calldata tokens) external onlyCastOwner {
+    function withdrawErc20Batch(
+        IERC20[] calldata tokens
+    ) external onlyCastOwner {
         for (uint256 i = 0; i < tokens.length; i++) {
-            bool success = IERC20(tokens[i]).transfer(msg.sender, tokens[i].balanceOf(address(this)));
+            bool success = IERC20(tokens[i]).transfer(
+                msg.sender,
+                tokens[i].balanceOf(address(this))
+            );
             if (!success) revert TransferFailed();
         }
     }
 
     /// @notice Transfer the entire balance of the specified ERC20 token to the specified address.
-    function withdrawErc20(IERC20 token, address to, uint256 amount) external onlyCastOwner {
+    function withdrawErc20(
+        IERC20 token,
+        address to,
+        uint256 amount
+    ) external onlyCastOwner {
         bool success = IERC20(token).transfer(to, amount);
         if (!success) revert TransferFailed();
     }

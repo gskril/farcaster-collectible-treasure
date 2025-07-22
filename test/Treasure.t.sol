@@ -76,6 +76,18 @@ contract TreasureTest is Test {
         assertEq(erc20.balanceOf(address(treasure)), 0);
         assertEq(erc20.balanceOf(user1), 100 ether);
     }
+
+    function test_TreasureCanReceieveEth() public {
+        vm.deal(address(user1), 100 ether);
+
+        // Transfer ETH to the treasure
+        vm.prank(user1);
+        (bool success, ) = address(treasure).call{value: 100 ether}("");
+        if (!success) revert();
+
+        assertEq(address(treasure).balance, 200 ether);
+        assertEq(address(user1).balance, 0);
+    }
 }
 
 contract MockCollectible is ERC721 {
