@@ -30,7 +30,7 @@ contract Treasure {
         CAST_HASH = _castHash;
     }
 
-    // @dev Allow the contract to receive ETH
+    // @dev Allow the contract to receive ETH.
     receive() external payable {}
 
     /// @notice Transfer the entire balance of ETH to the cast owner.
@@ -57,5 +57,11 @@ contract Treasure {
     function withdrawErc20(IERC20 token, address to, uint256 amount) external onlyCastOwner {
         bool success = IERC20(token).transfer(to, amount);
         if (!success) revert TransferFailed();
+    }
+
+    /// @notice The token id of the collectible cast.
+    /// @dev This is deterministic based on the cast hash.
+    function tokenId() external view returns (uint256) {
+        return uint256(CAST_HASH);
     }
 }
