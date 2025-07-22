@@ -49,6 +49,19 @@ contract Treasure {
         if (!success) revert TransferFailed();
     }
 
+    /// @notice Transfer the entire balance of the specified ERC20s to the cast owner.
+    function withdrawErc20Batch(
+        IERC20[] calldata tokens
+    ) external onlyCastOwner {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            bool success = IERC20(tokens[i]).transfer(
+                msg.sender,
+                tokens[i].balanceOf(address(this))
+            );
+            if (!success) revert TransferFailed();
+        }
+    }
+
     /// @notice Transfer the entire balance of the specified ERC20 token to the specified address.
     function withdrawErc20(
         IERC20 token,

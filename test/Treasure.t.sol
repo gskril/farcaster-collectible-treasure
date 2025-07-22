@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Treasure} from "../src/Treasure.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TreasureTest is Test {
     Treasure public treasure;
@@ -65,6 +66,15 @@ contract TreasureTest is Test {
         vm.prank(user2);
         vm.expectRevert(Treasure.NotCastOwner.selector);
         treasure.withdrawErc20(erc20, user2, 100 ether);
+    }
+
+    function test_OwnerCanBatchWithdrawErc20() public {
+        vm.prank(user1);
+        IERC20[] memory tokens = new IERC20[](1);
+        tokens[0] = erc20;
+        treasure.withdrawErc20Batch(tokens);
+        assertEq(erc20.balanceOf(address(treasure)), 0);
+        assertEq(erc20.balanceOf(user1), 100 ether);
     }
 }
 
