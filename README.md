@@ -1,9 +1,5 @@
-## Farcaster Cast Collectible Treasure
+# Farcaster Collectible Cast Treasure
 
-ok time for an experiment
+Smart contract that lets the owner of a [Farcaster collectible cast](https://github.com/farcasterxyz/collectible-casts) withdraw all of the assets in it.
 
-i'm going to write a smart contract that lets the winner of this cast's auction to claim 0.0135 ETH (~$50)
-
-this is possible because the token id of the collectible is deterministic based on the cast hash, so it's totally permissionless
-
-anybody can add to the prize as well
+This is possible because the collectible's token id is deterministic based on the cast hash, so it's totally permissionless.
