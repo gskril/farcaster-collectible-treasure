@@ -82,7 +82,7 @@ contract TreasureTest is Test {
 
         // Transfer ETH to the treasure
         vm.prank(user1);
-        (bool success, ) = address(treasure).call{value: 100 ether}("");
+        (bool success,) = address(treasure).call{value: 100 ether}("");
         if (!success) revert();
 
         assertEq(address(treasure).balance, 200 ether);
