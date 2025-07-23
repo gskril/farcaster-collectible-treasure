@@ -1,6 +1,6 @@
 // Idk why there's no wagmi hook for events but this should work fine
 import { useQuery } from '@tanstack/react-query'
-import { Address, parseAbi, parseAbiItem } from 'viem'
+import { Address, formatUnits, parseAbi, parseAbiItem } from 'viem'
 import { usePublicClient } from 'wagmi'
 
 import { auctionContract, treasureContract } from '../web3.ts'
@@ -26,28 +26,58 @@ export function useErc20Tokens() {
       })
 
       const logs = await viemClient.getFilterLogs({ filter })
-      const tokenAddresses = [...new Set(logs.map((log) => log.address))]
+      const amountsPerToken = new Map<Address, bigint>()
+
+      for (const log of logs) {
+        amountsPerToken.set(
+          log.address,
+          (amountsPerToken.get(log.address) ?? 0n) + log.args.value
+        )
+      }
+
+      const tokenAddresses = [...amountsPerToken.keys()]
+      const tokenAddressesWithBalance = tokenAddresses.map((address) => ({
+        address,
+        balance: amountsPerToken.get(address) ?? 0n,
+      }))
 
       // Get the name of each token
       const tokens = new Array<{
         address: Address
         symbol: string | undefined
+        balance: string
       }>()
 
       const res = await viemClient.multicall({
-        contracts: tokenAddresses.map((address) => ({
-          address,
-          abi: parseAbi(['function symbol() view returns (string)']),
-          functionName: 'symbol',
-        })),
+        contracts: tokenAddressesWithBalance.map(({ address }) => {
+          return {
+            address,
+            abi: parseAbi(['function symbol() view returns (string)']),
+            functionName: 'symbol',
+          }
+        }),
       })
 
-      for (let i = 0; i < tokenAddresses.length; i++) {
+      console.log(res)
+
+      for (let i = 0; i < tokenAddressesWithBalance.length; i++) {
         const symbol = res[i].result
 
         // Block scams that include links in the symbol
         if (symbol && !symbol.includes('|')) {
-          tokens.push({ address: tokenAddresses[i], symbol })
+          const balance = Number(
+            formatUnits(
+              tokenAddressesWithBalance[i].balance,
+              // Naive implementation that assumes only USDC has 6 decimals
+              symbol === 'USDC' ? 6 : 18
+            )
+          ).toLocaleString()
+
+          tokens.push({
+            address: tokenAddressesWithBalance[i].address,
+            symbol,
+            balance,
+          })
         }
       }
 

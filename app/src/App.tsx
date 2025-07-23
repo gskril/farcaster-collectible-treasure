@@ -14,13 +14,14 @@ import {
   CardHeader,
   CardTitle,
 } from './components/ui/card'
+import { Spinner } from './components/spinner'
 
 function App() {
   // Show: The latest bid: xxUSDC by @user
   // Total value of treasure: $xx
   const { data: ethBalance } = useBalance(treasureContract)
-  const { data: tokens } = useErc20Tokens()
-  const { data: bids } = useBids()
+  const tokens = useErc20Tokens()
+  const bids = useBids()
   const { address } = useAccount()
 
   useEffect(() => {
@@ -56,19 +57,42 @@ function App() {
                 <div className="bg-blue-100 p-2 rounded-full">
                   <Coins className="h-5 w-5 text-blue-600" />
                 </div>
-                <span>Ethereum</span>
+                <span>ETH</span>
               </div>
               <span className="font-bold">
-                {formatEther(ethBalance?.value ?? 0n)} ETH
+                {formatEther(ethBalance?.value ?? 0n)}
               </span>
             </div>
 
-            {tokens && (
-              <span>
-                Also includes{' '}
-                {tokens.map((token) => `$${token.symbol}`).join(', ')}
-              </span>
+            {tokens.isLoading && (
+              <div className="flex items-center gap-1.5">
+                <Spinner />
+                <p>Fetching other tokens...</p>
+              </div>
             )}
+
+            {tokens.isError && (
+              <div className="flex items-center gap-1.5">
+                <p>Error fetching other tokens</p>
+              </div>
+            )}
+
+            {tokens.data?.map(({ address, symbol, balance }) => (
+              <div className="flex justify-between items-center" key={address}>
+                <div className="flex items-center gap-2">
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <Coins className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <span>{symbol}</span>
+                </div>
+                <span className="font-bold">{balance}</span>
+              </div>
+
+              // <div>
+              //   Also includes{' '}
+              //   {tokens.data?.map((token) => `$${token.symbol}`).join(', ')}
+              // </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -85,7 +109,14 @@ function App() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {bids?.map(({ args }, index) => (
+            {bids.isLoading && (
+              <div className="flex items-center gap-1.5">
+                <Spinner />
+                <p>Fetching latest bids...</p>
+              </div>
+            )}
+
+            {bids.data?.map(({ args }, index) => (
               <div key={index} className="flex justify-between items-center">
                 <div>
                   <div className="font-medium">
