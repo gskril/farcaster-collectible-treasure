@@ -2,7 +2,7 @@
 
 Smart contract that lets the owner of a [Farcaster collectible cast](https://github.com/farcasterxyz/collectible-casts) withdraw all of the assets in it.
 
-This is possible because the collectible's token id is deterministic based on the cast hash, so it's totally permissionless.
+The collectible (NFT) doesn't have to exist at the time of Treasure.sol being deployed because the token id is deterministic based on the cast hash.
 
 ## Deployments
 
