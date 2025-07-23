@@ -1,6 +1,6 @@
 import { Coins, Trophy } from 'lucide-react'
 import { useAccount, useBalance } from 'wagmi'
-import { formatEther, formatUnits } from 'viem'
+import { formatUnits } from 'viem'
 import { useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
 
