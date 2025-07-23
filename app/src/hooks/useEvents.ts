@@ -45,7 +45,8 @@ export function useErc20Tokens() {
       const tokens = new Array<{
         address: Address
         symbol: string | undefined
-        balance: string
+        balance: number
+        balanceStr: string
       }>()
 
       const res = await viemClient.multicall({
@@ -58,25 +59,26 @@ export function useErc20Tokens() {
         }),
       })
 
-      console.log(res)
-
       for (let i = 0; i < tokenAddressesWithBalance.length; i++) {
         const symbol = res[i].result
+        const balance = tokenAddressesWithBalance[i].balance
 
-        // Block scams that include links in the symbol
-        if (symbol && !symbol.includes('|')) {
-          const balance = Number(
+        // Naive attempt to filter out spam
+        if (symbol && !symbol.includes('|') && balance > 10000n) {
+          const formattedBalance = Number(
             formatUnits(
-              tokenAddressesWithBalance[i].balance,
+              balance,
               // Naive implementation that assumes only USDC has 6 decimals
               symbol === 'USDC' ? 6 : 18
             )
-          ).toLocaleString()
+          )
+          const balanceStr = Number(formattedBalance).toLocaleString()
 
           tokens.push({
             address: tokenAddressesWithBalance[i].address,
             symbol,
-            balance,
+            balance: formattedBalance,
+            balanceStr,
           })
         }
       }

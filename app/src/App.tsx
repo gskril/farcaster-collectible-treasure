@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from './components/ui/card'
 import { Spinner } from './components/spinner'
+import { useErc20Price } from './hooks/useTokenPrice'
 
 function App() {
   // Show: The latest bid: xxUSDC by @user
@@ -23,6 +24,10 @@ function App() {
   const tokens = useErc20Tokens()
   const bids = useBids()
   const { address } = useAccount()
+  const { data: ethValue } = useErc20Price(
+    '0x4200000000000000000000000000000000000006', // WETH
+    Number(ethBalance?.formatted)
+  )
 
   useEffect(() => {
     sdk.actions.ready()
@@ -59,9 +64,12 @@ function App() {
                 </div>
                 <span>ETH</span>
               </div>
-              <span className="font-bold">
-                {formatEther(ethBalance?.value ?? 0n)}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {Number(ethBalance?.formatted).toFixed(5)}
+                </span>
+                {ethValue && <span className="font-bold">${ethValue}</span>}
+              </div>
             </div>
 
             {tokens.isLoading && (
@@ -77,21 +85,8 @@ function App() {
               </div>
             )}
 
-            {tokens.data?.map(({ address, symbol, balance }) => (
-              <div className="flex justify-between items-center" key={address}>
-                <div className="flex items-center gap-2">
-                  <div className="bg-blue-100 p-2 rounded-full">
-                    <Coins className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <span>{symbol}</span>
-                </div>
-                <span className="font-bold">{balance}</span>
-              </div>
-
-              // <div>
-              //   Also includes{' '}
-              //   {tokens.data?.map((token) => `$${token.symbol}`).join(', ')}
-              // </div>
+            {tokens.data?.map((token) => (
+              <TokenRow token={token} key={address} />
             ))}
           </div>
         </CardContent>
@@ -174,6 +169,34 @@ function App() {
             : 'Waiting for auction to settle...'}
       </div> */}
     </main>
+  )
+}
+
+type TokenRowProps = NonNullable<
+  ReturnType<typeof useErc20Tokens>['data']
+>[number]
+
+function TokenRow({ token }: { token: TokenRowProps }) {
+  const { address, symbol, balance, balanceStr } = token
+  const price = useErc20Price(address, balance)
+
+  return (
+    <div className="flex justify-between items-center" key={address}>
+      <div className="flex items-center gap-2">
+        <div className="bg-blue-100 p-2 rounded-full">
+          <Coins className="h-5 w-5 text-blue-600" />
+        </div>
+        <span>{symbol}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">{balanceStr}</span>
+        {price.data && (
+          <span className="font-bold">
+            ${Number(price.data).toLocaleString()}
+          </span>
+        )}
+      </div>
+    </div>
   )
 }
 
