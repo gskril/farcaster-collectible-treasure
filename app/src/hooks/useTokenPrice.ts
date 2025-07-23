@@ -40,6 +40,10 @@ async function getErc20Price(token: Address, amount: number) {
     args: [usdc.address, token, false],
   })
 
+  if (res === 0n) {
+    return null
+  }
+
   const numerator = 10 ** usdc.decimals
   const denominator = 10 ** decimals
   const conversionFactor = numerator / (1e18 * denominator)
