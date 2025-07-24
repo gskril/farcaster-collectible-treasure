@@ -5,7 +5,7 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi'
-import { Abi, Address, formatUnits, parseAbi } from 'viem'
+import { Abi, Address, formatUnits } from 'viem'
 import { PropsWithChildren, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
 import { toast } from 'sonner'
