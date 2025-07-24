@@ -25,7 +25,10 @@ import { useErc20Price } from './hooks/useTokenPrice'
 import { Button } from './components/ui/button'
 
 function App() {
-  const { data: ethBalance } = useBalance(treasureContract)
+  const { data: ethBalance } = useBalance({
+    ...treasureContract,
+    blockNumber: 33259579n,
+  })
   const tokens = useErc20Tokens()
   const bids = useBids()
   const { address } = useAccount()
@@ -94,10 +97,10 @@ function App() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Coins className="h-5 w-5" />
-            Contract Assets
+            Treasure
           </CardTitle>
           <CardDescription>
-            Current assets locked in the treasure chest
+            Assets received during the auction with their current value.
           </CardDescription>
         </CardHeader>
         <CardContent>

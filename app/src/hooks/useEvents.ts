@@ -8,6 +8,9 @@ import { auctionContract, treasureContract } from '../web3.ts'
 const castHash =
   '0x000000000000000000000000484fe4404b41da7cd5f56915be641fdda34f01b7' as const
 
+const treasureDeployedBlock = 33214449n
+const auctionSettledBlock = 33259598n
+
 // ERC20 tokens held by the treasure contract
 export function useErc20Tokens() {
   const viemClient = usePublicClient()
@@ -24,7 +27,8 @@ export function useErc20Tokens() {
         args: {
           to: treasureContract.address,
         },
-        fromBlock: 33214449n,
+        fromBlock: treasureDeployedBlock,
+        toBlock: auctionSettledBlock,
         strict: true,
       })
 
@@ -104,7 +108,8 @@ export function useBids() {
         args: {
           castHash,
         },
-        fromBlock: 33214449n,
+        fromBlock: auctionSettledBlock,
+        toBlock: auctionSettledBlock,
         strict: true,
       })
 
@@ -124,7 +129,8 @@ export function useAuctionStatus() {
       const filter = await viemClient.createEventFilter({
         event: auctionContract.abi[1],
         args: { castHash },
-        fromBlock: 33214449n,
+        fromBlock: treasureDeployedBlock,
+        toBlock: auctionSettledBlock,
         strict: true,
       })
 
