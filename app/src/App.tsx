@@ -1,10 +1,16 @@
 import { Coins, Trophy } from 'lucide-react'
-import { useAccount, useBalance } from 'wagmi'
-import { formatUnits } from 'viem'
-import { useEffect } from 'react'
+import {
+  useAccount,
+  useBalance,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from 'wagmi'
+import { Abi, Address, formatUnits, parseAbi } from 'viem'
+import { PropsWithChildren, useEffect } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
+import { toast } from 'sonner'
 
-import { useBids, useErc20Tokens } from './hooks/useEvents'
+import { useAuctionStatus, useBids, useErc20Tokens } from './hooks/useEvents'
 import { truncateAddress } from './lib/utils'
 import { treasureContract } from './web3'
 import {
@@ -16,14 +22,15 @@ import {
 } from './components/ui/card'
 import { Spinner } from './components/spinner'
 import { useErc20Price } from './hooks/useTokenPrice'
+import { Button } from './components/ui/button'
 
 function App() {
-  // Show: The latest bid: xxUSDC by @user
-  // Total value of treasure: $xx
   const { data: ethBalance } = useBalance(treasureContract)
   const tokens = useErc20Tokens()
   const bids = useBids()
   const { address } = useAccount()
+  const { data: auction } = useAuctionStatus()
+
   const { data: ethValue } = useErc20Price(
     '0x4200000000000000000000000000000000000006', // WETH
     Number(ethBalance?.formatted)
@@ -44,6 +51,44 @@ function App() {
           Collect Greg's cast to unlock the treasure within this smart contract.
         </p>
       </div>
+
+      {auction?.status === 'settled' && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Auction Settled</CardTitle>
+            <CardDescription>
+              The auction has been settled.{' '}
+              {auction.winner === address
+                ? 'You'
+                : truncateAddress(auction.winner!)}{' '}
+              can claim the treasure.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-2">
+              <TransactionButton
+                auctionWinner={auction.winner}
+                func={{
+                  ...treasureContract,
+                  functionName: 'withdrawEth',
+                }}
+              >
+                Claim ETH
+              </TransactionButton>
+              <TransactionButton
+                auctionWinner={auction.winner}
+                func={{
+                  ...treasureContract,
+                  functionName: 'withdrawErc20Batch',
+                  args: [tokens.data?.map(({ address }) => address) ?? []],
+                }}
+              >
+                Claim ERC20s
+              </TransactionButton>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="mb-6">
         <CardHeader>
@@ -128,46 +173,6 @@ function App() {
           </div>
         </CardContent>
       </Card>
-
-      {/* <div className="space-y-4">
-        <Button
-          className="w-full"
-          onClick={claimETH}
-          disabled={!canClaim || ethBalance === '0' || isLoading}
-        >
-          <Coins className="mr-2 h-4 w-4" />
-          Claim ETH
-          {!isAuctionSettled && (
-            <span className="ml-2 text-xs">(Auction not settled)</span>
-          )}
-          {isAuctionSettled && !isOwner && (
-            <span className="ml-2 text-xs">(Not NFT owner)</span>
-          )}
-        </Button>
-
-        <Button
-          className="w-full"
-          onClick={claimERC20s}
-          disabled={!canClaim || tokens.length === 0 || isLoading}
-        >
-          <Gem className="mr-2 h-4 w-4" />
-          Claim ERC20 Tokens
-          {!isAuctionSettled && (
-            <span className="ml-2 text-xs">(Auction not settled)</span>
-          )}
-          {isAuctionSettled && !isOwner && (
-            <span className="ml-2 text-xs">(Not NFT owner)</span>
-          )}
-        </Button>
-      </div> */}
-
-      {/* <div className="mt-4 text-center text-sm text-muted-foreground">
-        {isAuctionSettled
-            ? isOwner
-              ? 'You own the NFT key! You can claim the treasure.'
-              : "Auction settled. You don't own the NFT key."
-            : 'Waiting for auction to settle...'}
-      </div> */}
     </main>
   )
 }
@@ -197,6 +202,49 @@ function TokenRow({ token }: { token: TokenRowProps }) {
         )}
       </div>
     </div>
+  )
+}
+
+function TransactionButton({
+  auctionWinner,
+  func,
+  children,
+}: PropsWithChildren<{
+  auctionWinner: Address | undefined
+  // TODO: Type this better
+  func: {
+    address: Address
+    abi: Abi
+    functionName: string
+    args?: unknown[]
+  }
+}>) {
+  const { address } = useAccount()
+  const tx = useWriteContract()
+  const receipt = useWaitForTransactionReceipt({ hash: tx.data })
+
+  useEffect(() => {
+    if (receipt.isSuccess) {
+      toast.success('Transaction successful')
+      tx.reset()
+    }
+
+    if (receipt.isError) {
+      toast.error('Transaction failed')
+      tx.reset()
+    }
+  }, [receipt, tx])
+
+  return (
+    <Button
+      loading={tx.isPending || receipt.isLoading}
+      disabled={auctionWinner !== address}
+      onClick={() => {
+        tx.writeContract(func)
+      }}
+    >
+      {children}
+    </Button>
   )
 }
 

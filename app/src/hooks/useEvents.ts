@@ -5,6 +5,9 @@ import { usePublicClient } from 'wagmi'
 
 import { auctionContract, treasureContract } from '../web3.ts'
 
+const castHash =
+  '0x000000000000000000000000484fe4404b41da7cd5f56915be641fdda34f01b7' as const
+
 // ERC20 tokens held by the treasure contract
 export function useErc20Tokens() {
   const viemClient = usePublicClient()
@@ -99,14 +102,40 @@ export function useBids() {
       const filter = await viemClient.createEventFilter({
         event: auctionContract.abi[0],
         args: {
-          castHash:
-            '0x000000000000000000000000484fe4404b41da7cd5f56915be641fdda34f01b7',
+          castHash,
         },
         fromBlock: 33214449n,
         strict: true,
       })
 
       return (await viemClient.getFilterLogs({ filter })).reverse()
+    },
+  })
+}
+
+export function useAuctionStatus() {
+  const viemClient = usePublicClient()
+
+  return useQuery({
+    queryKey: ['auction-status'],
+    queryFn: async () => {
+      if (!viemClient) throw new Error('Viem client not found')
+
+      const filter = await viemClient.createEventFilter({
+        event: auctionContract.abi[1],
+        args: { castHash },
+        fromBlock: 33214449n,
+        strict: true,
+      })
+
+      const logs = await viemClient.getFilterLogs({ filter })
+      const hasClosed = logs.length > 0
+
+      if (hasClosed) {
+        return { status: 'settled', winner: logs[0].args.winner }
+      }
+
+      return { status: 'open' }
     },
   })
 }
