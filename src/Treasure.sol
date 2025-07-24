@@ -38,33 +38,40 @@ contract Treasure {
 
     /// @notice Transfer the entire balance of ETH to the cast owner.
     function withdrawEth() external onlyCastOwner {
-        (bool success,) = msg.sender.call{value: address(this).balance}("");
+        uint256 balance = address(this).balance;
+        (bool success,) = msg.sender.call{value: balance}("");
         if (!success) revert TransferFailed();
+        emit EthWithdrawn(msg.sender, balance);
     }
 
     /// @notice Transfer the entire balance of the specified ERC20 token to the cast owner.
     function withdrawErc20(IERC20 token) external onlyCastOwner {
-        bool success = IERC20(token).transfer(msg.sender, token.balanceOf(address(this)));
-        if (!success) revert TransferFailed();
+        uint256 balance = token.balanceOf(address(this));
+        _withdrawErc20(token, msg.sender, balance);
     }
 
     /// @notice Transfer the entire balance of the specified ERC20s to the cast owner.
     function withdrawErc20Batch(IERC20[] calldata tokens) external onlyCastOwner {
         for (uint256 i = 0; i < tokens.length; i++) {
-            bool success = IERC20(tokens[i]).transfer(msg.sender, tokens[i].balanceOf(address(this)));
-            if (!success) revert TransferFailed();
+            uint256 balance = tokens[i].balanceOf(address(this));
+            _withdrawErc20(tokens[i], msg.sender, balance);
         }
     }
 
     /// @notice Transfer the entire balance of the specified ERC20 token to the specified address.
     function withdrawErc20(IERC20 token, address to, uint256 amount) external onlyCastOwner {
-        bool success = IERC20(token).transfer(to, amount);
-        if (!success) revert TransferFailed();
+        _withdrawErc20(token, to, amount);
     }
 
     /// @notice The token id of the collectible cast.
     /// @dev This is deterministic based on the cast hash.
     function tokenId() external view returns (uint256) {
         return uint256(CAST_HASH);
+    }
+
+    function _withdrawErc20(IERC20 token, address to, uint256 amount) internal {
+        bool success = IERC20(token).transfer(to, amount);
+        if (!success) revert TransferFailed();
+        emit Erc20Withdrawn(to, address(token), amount);
     }
 }
