@@ -13,6 +13,7 @@ contract Treasure {
     IERC721 public immutable COLLECTIBLE;
 
     event Erc20Withdrawn(address indexed to, address indexed token, uint256 amount);
+    event EthDeposited(address indexed from, uint256 amount);
     event EthWithdrawn(address indexed to, uint256 amount);
 
     error NotCastOwner();
@@ -31,7 +32,9 @@ contract Treasure {
     }
 
     // @dev Allow the contract to receive ETH.
-    receive() external payable {}
+    receive() external payable {
+        emit EthDeposited(msg.sender, msg.value);
+    }
 
     /// @notice Transfer the entire balance of ETH to the cast owner.
     function withdrawEth() external onlyCastOwner {
